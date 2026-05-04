@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADKBOT. FINANCE | Arbitragem Automática</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg: #0a0a0b; --card: #141416; --primary: #22c55e; --dim: #a1a1a1; --border: #232326; }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body { background: var(--bg); color: #fff; font-family: 'Inter', sans-serif; }
+
+        /* HERO */
+        .hero { text-align: center; padding: 100px 20px; background: radial-gradient(circle at center, #1a2e1a 0%, var(--bg) 70%); }
+        .hero h1 { font-size: clamp(2rem, 5vw, 3.5rem); font-weight: 900; margin-bottom: 16px; }
+        .hero p { color: var(--dim); font-size: 1.1rem; margin-bottom: 36px; }
+        .btn-cta { background: var(--primary); color: #000; border: none; padding: 16px 40px; border-radius: 8px; font-weight: 700; font-size: 1rem; cursor: pointer; transition: .2s; text-transform: uppercase; }
+        .btn-cta:hover { transform: scale(1.04); box-shadow: 0 0 20px rgba(34,197,94,.4); }
+
+        /* SECTIONS */
+        .section { max-width: 1100px; margin: 0 auto; padding: 70px 20px; }
+        .section h2 { text-align: center; margin-bottom: 36px; }
+        .grid3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 20px; }
+        .card-info { background: var(--card); border: 1px solid var(--border); padding: 28px; border-radius: 14px; text-align: center; }
+        .card-info h3 { color: var(--primary); margin-bottom: 10px; }
+
+        /* DASHBOARD */
+        #dashboard { display: none; border-top: 2px solid var(--primary); padding: 36px 20px; background: #000; }
+        .dash-inner { max-width: 1300px; margin: 0 auto; }
+        .dash-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 28px; flex-wrap: wrap; gap: 12px; }
+        .dash-logo { font-size: 1.4rem; font-weight: 900; color: var(--primary); }
+        .dash-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 20px; }
+        @media(max-width:768px){ .dash-grid { grid-template-columns: 1fr; } }
+        .card { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 18px; }
+        .card-label { font-size: .78rem; color: var(--dim); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 12px; }
+        .big-num { font-size: 2rem; font-weight: 700; color: var(--primary); }
+        .asset-row { display: flex; justify-content: space-between; align-items: center; padding: 14px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; background: #181a18; }
+        .badge { background: #27272a; padding: 3px 8px; border-radius: 5px; font-size: .65rem; color: var(--dim); }
+        .aff-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+        .aff-box { background: var(--card); border: 1px solid var(--border); border-radius: 12px; padding: 18px; text-align: center; }
+        .lvl-row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid #232326; font-size: .84rem; }
+        .btn-main { background: var(--primary); color: #000; border: none; padding: 12px 22px; border-radius: 8px; font-weight: 700; cursor: pointer; transition: .2s; width: 100%; text-transform: uppercase; }
+        .btn-outline { background: rgba(34,197,94,.1); color: var(--primary); border: 1px solid var(--primary); }
+        .status-dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; background: var(--primary); margin-right: 6px; }
+        .btn-danger { background: rgba(239,68,68,.15); color: #ef4444; border: 1px solid #ef4444; padding: 8px 16px; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: .85rem; }
+        .bot-active { background: rgba(34,197,94,.08); border-color: var(--primary) !important; }
+        .pulse { animation: pulse 2s infinite; }
+        @keyframes pulse { 0%,100%{ box-shadow: 0 0 0 0 rgba(34,197,94,.4); } 50%{ box-shadow: 0 0 0 8px rgba(34,197,94,0); } }
+
+        /* MODAL */
+        #modal { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85); z-index: 999; justify-content: center; align-items: center; }
+        .modal-box { background: var(--card); border: 1px solid var(--border); padding: 28px; border-radius: 18px; width: 90%; max-width: 420px; }
+        .modal-box h3 { margin-bottom: 18px; text-align: center; }
+        .wallet-btn { display: flex; align-items: center; justify-content: space-between; padding: 14px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 10px; cursor: pointer; transition: .2s; background: transparent; color: #fff; width: 100%; font-size: .95rem; }
+        .wallet-btn:hover { border-color: var(--primary); background: rgba(34,197,94,.06); }
+        .wallet-btn img { width: 28px; height: 28px; border-radius: 6px; }
+
+        /* INPUT para endereço manual */
+        .input-solana { width: 100%; padding: 12px; background: #000; border: 1px solid var(--border); border-radius: 8px; color: #fff; font-size: .9rem; margin-bottom: 10px; outline: none; }
+        .input-solana:focus { border-color: var(--primary); }
+        #manualSection { display: none; margin-top: 10px; }
+        .section-label { font-size: .8rem; color: var(--dim); margin-bottom: 8px; }
+    </style>
+</head>
+<body>
+
+<!-- HERO -->
+<header class="hero">
+    <h1>Ganhe com Arbitragem Cripto<br>de Forma Automática</h1>
+    <p>Sem taxas de gás &bull; 100% Automático &bull; Lucros reais na Solana</p>
+    <button class="btn-cta" onclick="showDash()">👉 Conectar Carteira e Começar</button>
+</header>
+
+<!-- COMO FUNCIONA -->
+<div class="section">
+    <h2 style="color:var(--primary)">📌 Como Funciona</h2>
+    <div class="grid3">
+        <div class="card-info"><h3>1. Conecte</h3><p>Phantom, Solflare ou MetaMask — qualquer carteira funciona.</p></div>
+        <div class="card-info"><h3>2. Autorize</h3><p>O sistema monitora oportunidades na rede Solana automaticamente.</p></div>
+        <div class="card-info"><h3>3. Receba</h3><p>65% dos lucros vão direto para sua carteira, sem intervenção.</p></div>
+    </div>
+</div>
+
+<!-- DISTRIBUIÇÃO -->
+<div class="section" style="background:rgba(255,255,255,.02);border-radius:24px">
+    <h2>💰 Distribuição de Ganhos</h2>
+    <div class="grid3">
+        <div class="card-info"><div style="font-size:2.5rem;font-weight:900;color:var(--primary)">65%</div><p>Você (Investidor)</p></div>
+        <div class="card-info"><div style="font-size:2.5rem;font-weight:900">20%</div><p>ADM (Taxas e Gás)</p></div>
+        <div class="card-info"><div style="font-size:2.5rem;font-weight:900">15%</div><p>Rede de Indicações (5 Níveis)</p></div>
+    </div>
+</div>
+
+<!-- DASHBOARD -->
+<main id="dashboard">
+    <div class="dash-inner">
+        <div class="dash-header">
+            <div class="dash-logo">ADKBOT. FINANCE</div>
+            <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+                <button id="disconnectBtn" class="btn-danger" style="display:none" onclick="disconnectWallet()">🔌 Desconectar</button>
+                <button id="connectBtn" class="btn-main" style="width:auto" onclick="openModal()">🌐 Conectar Carteira</button>
+            </div>
+        </div>
+
+        <div class="dash-grid">
+            <!-- ESQUERDA -->
+            <div>
+                <div class="card">
+                    <div class="card-label">Saldo Total Gerenciado</div>
+                    <div class="big-num" id="mainBalance">$ 0.00</div>
+                    <div id="walletStatus" style="color:var(--dim);font-size:.8rem;margin-top:6px">Aguardando conexão...</div>
+                </div>
+
+                <div class="card-label">Ativos Sincronizados</div>
+                <div class="asset-row">
+                    <div><b>USDC</b> <span class="badge">SOLANA</span></div>
+                    <div style="text-align:right"><b id="bal-usdc" style="color:var(--primary)">0.00</b><br><small style="color:var(--primary)"><span class="status-dot"></span>Sincronizado</small></div>
+                </div>
+                <div class="asset-row">
+                    <div><b>USDT</b> <span class="badge">SOLANA</span></div>
+                    <div style="text-align:right"><b id="bal-usdt" style="color:var(--primary)">0.00</b><br><small style="color:var(--primary)"><span class="status-dot"></span>Sincronizado</small></div>
+                </div>
+                <div class="asset-row">
+                    <div><b>DAI</b> <span class="badge">SOLANA</span></div>
+                    <div style="text-align:right"><b id="bal-dai" style="color:var(--primary)">0.00</b><br><small style="color:var(--primary)"><span class="status-dot"></span>Sincronizado</small></div>
+                </div>
+
+                <div class="card" style="margin-top:18px">
+                    <div class="card-label">Estatísticas de Ciclos</div>
+                    <div style="display:flex;justify-content:space-between;text-align:center">
+                        <div><div style="font-size:1.3rem;font-weight:700" id="totalCycles">0</div><small style="color:var(--dim)">TOTAL LOTES</small></div>
+                        <div><div style="font-size:1.3rem;font-weight:700;color:var(--primary)" id="totalProfit">$0.00</div><small style="color:var(--dim)">LUCRO TOTAL</small></div>
+                        <div><div style="font-size:1.3rem;font-weight:700" id="avgLot">0</div><small style="color:var(--dim)">MÉDIA/LOTE</small></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- DIREITA -->
+            <div>
+                <div class="aff-grid">
+                    <div class="aff-box">
+                        <div class="big-num" style="color:#fff;font-size:1.6rem" id="totalReferrals">0</div>
+                        <div class="card-label" style="margin:4px 0 0">TOTAL INDICAÇÕES</div>
+                    </div>
+                    <div class="aff-box">
+                        <div class="big-num" style="font-size:1.4rem" id="netEarnings">0.00</div>
+                        <div class="card-label" style="margin:4px 0 0">GANHOS REDE</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-label">Link de Indicação</div>
+                    <div style="background:#000;padding:10px;border-radius:6px;font-size:.75rem;display:flex;justify-content:space-between;align-items:center">
+                        <span id="refLink" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:200px">adkbot.finance/ref/...</span>
+                        <b style="color:var(--primary);cursor:pointer;flex-shrink:0;margin-left:8px" onclick="copyRef()">COPIAR</b>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-label">Sua Rede (5 Níveis)</div>
+                    <div class="lvl-row"><span>Nível 1 (5%)</span><b id="l1">0 Pessoas</b></div>
+                    <div class="lvl-row"><span>Nível 2 (4%)</span><b id="l2">0 Pessoas</b></div>
+                    <div class="lvl-row"><span>Nível 3 (3%)</span><b id="l3">0 Pessoas</b></div>
+                    <div class="lvl-row"><span>Nível 4 (2%)</span><b id="l4">0 Pessoas</b></div>
+                    <div class="lvl-row" style="border:0"><span>Nível 5 (1%)</span><b id="l5">0 Pessoas</b></div>
+                    <p style="font-size:.7rem;color:var(--dim);margin-top:10px">*Comissões automáticas. Gás pago pelo ADM.</p>
+                </div>
+
+                <div class="card" id="scanCard" style="display:none">
+      <div class="card-label" style="display:flex;justify-content:space-between;align-items:center">
+        <span>🔎 Ativos Detectados (Scanner Jupiter)</span>
+        <button class="btn-main btn-outline" style="padding:4px 12px;font-size:.72rem;width:auto" onclick="runScan()">🔄 Resscanear</button>
+      </div>
+      <div id="assetList"><p style="color:var(--dim);font-size:.85rem">Conecte sua carteira para escanear...</p></div>
+      <div id="scanStatus" style="font-size:.8rem;color:var(--dim);margin-top:8px"></div>
+    </div>
+    <div class="card" id="botCard">
+                    <div class="card-label">Motor de Arbitragem</div>
+                    <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">
+                        <div id="statusLed" style="width:14px;height:14px;border-radius:50%;background:#3f3f46;flex-shrink:0"></div>
+                        <span>Status: <b id="botStatus" style="color:var(--dim)">Aguardando Autorização</b></span>
+                    </div>
+                    <div id="botInfo" style="display:none;background:#000;padding:10px;border-radius:8px;font-size:.8rem;color:var(--dim);margin-bottom:12px;line-height:1.6">
+                        🟢 Monitorando pares Solana em tempo real<br>
+                        ⚡ Motor de arbitragem ativo via Jupiter<br>
+                        💸 Lucros distribuídos automaticamente
+                    </div>
+                    <button id="authBtn" class="btn-main btn-outline pulse" onclick="authorizeBot()">⚡ Autorizar e Iniciar Operações</button>
+                    <button id="stopBtn" class="btn-danger" style="display:none;width:100%;margin-top:8px" onclick="stopBot()">⏹ Parar Monitoramento</button>
+    <div id="authSteps" style="font-size:.8rem;color:var(--dim);margin-top:10px;min-height:18px"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</main>
+
+<!-- MODAL -->
+<div id="modal">
+    <div class="modal-box">
+        <h3>🔐 Conectar Carteira</h3>
+
+        <button class="wallet-btn" onclick="connectPhantom()">
+            <span>🟣 Phantom <small style="color:var(--dim)">(Recomendado)</small></span>
+            <img src="https://phantom.app/favicon.ico" alt="Phantom">
+        </button>
+
+        <button class="wallet-btn" onclick="connectSolflare()">
+            <span>🔶 Solflare</span>
+            <img src="https://solflare.com/favicon.ico" alt="Solflare">
+        </button>
+
+        <button class="wallet-btn" onclick="connectMetaMask()">
+            <span>🦊 MetaMask</span>
+            <img src="https://metamask.io/favicon.ico" alt="MetaMask">
+        </button>
+
+        <!-- Fallback manual para qualquer carteira -->
+        <div id="manualSection">
+            <div class="section-label" style="margin-top:14px;color:var(--primary)">📋 Inserir endereço Solana manualmente:</div>
+            <input id="manualKey" class="input-solana" placeholder="Cole seu endereço Solana (ex: 9r1M...)" />
+            <input id="refInput" class="input-solana" placeholder="Código de indicação (opcional)" />
+            <button class="btn-main" onclick="confirmManual()">✅ Confirmar Endereço</button>
+        </div>
+
+        <button class="wallet-btn" style="margin-top:8px;justify-content:center;color:var(--dim)" onclick="toggleManual()">
+            ✍️ Inserir endereço manualmente
+        </button>
+
+        <button class="btn-main btn-outline" style="margin-top:10px" onclick="closeModal()">Cancelar</button>
+    </div>
+</div>
+
+<script>
+'use strict';
+const REF=new URLSearchParams(location.search).get('ref')||'';
+let S={t:null,p:null,w:null};
+const $=id=>document.getElementById(id);
+function step(m){const e=$('authSteps');if(e)e.innerText=m;}
+function showDash(){$('dashboard').style.display='block';window.scrollTo({top:$('dashboard').offsetTop,behavior:'smooth'});openModal();}
+function openModal(){$('modal').style.display='flex';}
+function closeModal(){$('modal').style.display='none';}
+function toggleManual(){const s=$('manualSection');s.style.display=s.style.display==='none'?'block':'none';}
+function saveS(t,p,w){S={t,p,w};localStorage.setItem('adks',JSON.stringify({t,p,w}));}
+function loadS(){try{return JSON.parse(localStorage.getItem('adks')||'null')}catch{return null;}}
+function clearS(){S={t:null,p:null,w:null};localStorage.removeItem('adks');}
+function bs58(b){const A='123456789ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz';let d=[],s='',i,j,c;for(i=0;i<b.length;i++){c=b[i];for(j=0,c=c;j<d.length||c;j++,c=c/58|0)d[j]=((d[j]||0)*256+c)%58;while(d.length&&!d[d.length-1])d.pop();}for(i=0;i<b.length&&!b[i];i++)s+='1';for(i=d.length-1;i>=0;i--)s+=A[d[i]];return s;}
+async function authFlow(pk,wt,prov){
+  step('🔄 Gerando código de autenticação...');
+  const nr=await fetch('/api/auth/nonce?publicKey='+pk);
+  if(!nr.ok)throw new Error('Nonce falhou');
+  const{message}=await nr.json();
+  const enc=new TextEncoder().encode(message);
+  let sig=null;
+  step('✍️ Abra sua carteira para assinar (sem custo)...');
+  if(wt==='phantom'&&prov?.isConnected){const r=await prov.signMessage(enc,'utf8');sig=bs58(r.signature);}
+  else if(wt==='solflare'&&prov?.isConnected){const r=await prov.signMessage(enc,'utf8');sig=bs58(r.signature instanceof Uint8Array?r.signature:new Uint8Array(r.signature));}
+  else if(wt==='metamask'){let a=await ethereum.request({method:'eth_accounts'});if(!a.length)a=await ethereum.request({method:'eth_requestAccounts'});await ethereum.request({method:'personal_sign',params:['0x'+Array.from(enc).map(b=>b.toString(16).padStart(2,'0')).join(''),a[0]]});}
+  step('🔐 Verificando assinatura no servidor...');
+  const vr=await fetch('/api/auth/verify',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({publicKey:pk,signature:sig,walletType:wt,message})});
+  if(!vr.ok)throw new Error((await vr.json()).error||'Auth falhou');
+  return(await vr.json()).token;
+}
+async function onAuth(t,p,w,ref){
+  saveS(t,p,w);closeModal();step('');
+  try{await fetch('/api/register',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+t},body:JSON.stringify({referralBy:ref||null})});}catch{}
+  const sh=p.slice(0,4)+'...'+p.slice(-4);
+  const cb=$('connectBtn');if(cb){cb.innerText='✅ '+sh;cb.style.background='#166534';}
+  const db=$('disconnectBtn');if(db)db.style.display='block';
+  const ws=$('walletStatus');if(ws)ws.innerText=w+': '+p;
+  const rl=$('refLink');if(rl)rl.innerText='adkbot.finance/ref/'+p.slice(0,8);
+  await runScan();await loadNet(t);await loadStats(p);
+}
+async function runScan(){
+  if(!S.t)return;
+  const sb=$('scanCard');const al=$('assetList');
+  if(sb)sb.style.display='block';
+  if(al)al.innerHTML='<p style="color:var(--dim);font-size:.85rem">🔎 Escaneando via Solana RPC + Jupiter API...</p>';
+  try{
+    const r=await fetch('/api/wallet/scan',{headers:{'Authorization':'Bearer '+S.t}});
+    if(!r.ok)throw new Error('Scan '+r.status);
+    const d=await r.json();
+    const mb=$('mainBalance');if(mb)mb.innerText='$ '+d.totalBalanceUSD.toFixed(2);
+    const rows=(d.assets||[]).filter(a=>a.balance>0).map(a=>{
+      const st=a.hasRoutes
+        ?'<span style="color:#22c55e;font-size:.72rem;font-weight:700">✅ '+(a.bestRoute||a.symbol)+'</span>'
+        :a.canOperate
+          ?'<span style="color:#f59e0b;font-size:.72rem">⚠️ Sem rota ativa</span>'
+          :'<span style="color:var(--dim);font-size:.72rem">Saldo insuficiente</span>';
+      return'<div class="asset-row"><div><b>'+a.symbol+'</b> <span class="badge">SOLANA</span><br><small style="color:var(--dim)">'+a.balance.toFixed(4)+'</small></div><div style="text-align:right">'+st+'<br><small style="color:var(--dim)">≈ $'+a.balanceUSD.toFixed(2)+'</small></div></div>';
+    }).join('');
+    if(al)al.innerHTML=rows||'<p style="color:var(--dim)">Nenhum ativo com saldo encontrado.</p>';
+    const ss=$('scanStatus');
+    if(ss)ss.innerText=d.canStartBot?'✅ '+d.operationalAssets.length+' ativo(s) prontos — rotas Jupiter confirmadas':'⚠️ Deposite SOL (mín 0.001) ou USDC (mín 1.00) para operar';
+  }catch(e){if(al)al.innerHTML='<p style="color:#ef4444;font-size:.85rem">Erro no scan: '+e.message+'</p>';}
+}
+async function loadNet(t){
+  try{const r=await fetch('/api/user/network',{headers:{'Authorization':'Bearer '+t}});const d=await r.json();(d.levels||[]).forEach((l,i)=>{const el=$('l'+(i+1));if(el)el.innerText=l.count+' Pessoas';});const tr=$('totalReferrals');if(tr)tr.innerText=(d.levels||[]).reduce((s,l)=>s+l.count,0);}catch{}
+}
+async function loadStats(pk){
+  try{
+    const[sr,br]=await Promise.all([fetch('/api/stats'),fetch('/api/user/balance',{headers:{'Authorization':'Bearer '+S.t}})]);
+    const s=await sr.json();const b=br.ok?await br.json():{};
+    const bu=$('bal-usdc');if(bu)bu.innerText=b.usdc||s.balances?.usdc||'0.00';
+    const bt=$('bal-usdt');if(bt)bt.innerText=s.balances?.usdt||'0.00';
+    const bd=$('bal-dai');if(bd)bd.innerText=s.balances?.dai||'0.00';
+    const tc=$('totalCycles');if(tc)tc.innerText=s.txToday||0;
+  }catch{}
+}
+async function connectPhantom(){
+  try{
+    if(!window.phantom?.solana)return alert('Phantom não instalado!\\nBaixe em phantom.app');
+    const r=await window.phantom.solana.connect();
+    const t=await authFlow(r.publicKey.toString(),'phantom',window.phantom.solana);
+    await onAuth(t,r.publicKey.toString(),'phantom',REF);
+  }catch(e){step('');if(e.code===4001||e.code===-32603)alert('Operação cancelada.');else alert('Erro Phantom: '+e.message);}
+}
+async function connectSolflare(){
+  try{
+    if(!window.solflare)return alert('Solflare não instalado!\\nBaixe em solflare.com');
+    await window.solflare.connect();
+    const pk=window.solflare.publicKey.toString();
+    const t=await authFlow(pk,'solflare',window.solflare);
+    await onAuth(t,pk,'solflare',REF);
+  }catch(e){step('');if(e.code===4001)alert('Operação cancelada.');else alert('Erro Solflare: '+e.message);}
+}
+async function connectMetaMask(){
+  try{
+    if(!window.ethereum)return alert('MetaMask não instalada!\\nBaixe em metamask.io');
+    await window.ethereum.request({method:'eth_requestAccounts'});
+    const ms=$('manualSection');if(ms)ms.style.display='block';
+    const mk=$('manualKey');if(mk)mk.placeholder='🦊 MetaMask OK! Cole seu endereço Solana aqui...';
+  }catch(e){alert('Erro MetaMask: '+e.message);}
+}
+async function confirmManual(){
+  const pk=($('manualKey')||{}).value?.trim();
+  const ref=($('refInput')||{}).value?.trim()||REF;
+  if(!pk||pk.length<32||pk.length>44)return alert('Endereço Solana inválido! (32-44 chars)');
+  try{const t=await authFlow(pk,'metamask',null);await onAuth(t,pk,'metamask',ref);}
+  catch(e){alert('Erro: '+e.message);step('');}
+}
+async function authorizeBot(){
+  if(!S.t){openModal();return;}
+  const ab=$('authBtn');if(ab){ab.disabled=true;ab.innerText='⏳ Verificando ativos...';}
+  step('🔎 Verificando rotas Jupiter para seus ativos...');
+  await runScan();
+  if(ab)ab.style.display='none';
+  const stb=$('stopBtn');if(stb)stb.style.display='block';
+  const led=$('statusLed');if(led){led.style.background='#22c55e';led.classList.add('pulse');}
+  const bs=$('botStatus');if(bs){bs.innerText='ATIVO — Monitorando ✅';bs.style.color='#22c55e';}
+  const bi=$('botInfo');if(bi)bi.style.display='block';
+  const bc=$('botCard');if(bc)bc.classList.add('bot-active');
+  step('🚀 Motor ativo — arbitragem em tempo real via Jupiter');
+}
+function stopBot(){
+  if(!confirm('Parar monitoramento?'))return;
+  const led=$('statusLed');if(led){led.style.background='#f59e0b';led.classList.remove('pulse');}
+  const bs=$('botStatus');if(bs){bs.innerText='Pausado';bs.style.color='#f59e0b';}
+  const bi=$('botInfo');if(bi)bi.style.display='none';
+  const ab=$('authBtn');if(ab){ab.style.display='block';ab.disabled=false;ab.innerText='⚡ Autorizar e Iniciar Operações';}
+  const stb=$('stopBtn');if(stb)stb.style.display='none';
+  const bc=$('botCard');if(bc)bc.classList.remove('bot-active');
+  step('');
+}
+function disconnectWallet(){
+  if(!confirm('Desconectar carteira?'))return;
+  clearS();
+  try{window.phantom?.solana?.disconnect();}catch{}
+  try{window.solflare?.disconnect();}catch{}
+  location.reload();
+}
+function copyRef(){navigator.clipboard?.writeText('https://'+($('refLink')||{}).innerText).then(()=>alert('Link copiado!'));}
+window.addEventListener('load',async()=>{
+  const sv=loadS();
+  if(sv?.t&&sv?.p){
+    try{
+      const r=await fetch('/api/auth/session',{headers:{'Authorization':'Bearer '+sv.t}});
+      if(r.ok){
+        S=sv;
+        const{publicKey,walletType}=await r.json();
+        const sh=publicKey.slice(0,4)+'...'+publicKey.slice(-4);
+        const cb=$('connectBtn');if(cb){cb.innerText='✅ '+sh;cb.style.background='#166534';}
+        const db=$('disconnectBtn');if(db)db.style.display='block';
+        const ws=$('walletStatus');if(ws)ws.innerText=walletType+': '+publicKey;
+        const rl=$('refLink');if(rl)rl.innerText='adkbot.finance/ref/'+publicKey.slice(0,8);
+        $('dashboard').style.display='block';
+        await runScan();await loadNet(sv.t);await loadStats(publicKey);
+        return;
+      }
+    }catch{}
+    clearS();
+  }
+});
+</script>
+</body>
+</html></script></body></html>
